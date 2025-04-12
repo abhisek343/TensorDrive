@@ -1,0 +1,20 @@
+// server/tsconfig.json
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "commonjs",
+    "moduleResolution": "node", // Explicitly set module resolution
+    "rootDir": "./src",
+    "outDir": "./build",
+    "esModuleInterop": true,
+    "strict": true,
+    "resolveJsonModule": true, // Good practice
+    "sourceMap": true // Useful for debugging with ts-node
+  },
+  "include": [
+    "src/**/*" // Ensure all files in src are included
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

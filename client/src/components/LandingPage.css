@@ -1,0 +1,157 @@
+/* Self_driving/client/src/components/LandingPage.css */
+.landing-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(to bottom, #1a1a1a, #000); /* Gradient background */
+    color: #eee;
+    font-family: sans-serif;
+    padding: 20px;
+    text-align: center;
+    overflow: hidden; /* Prevent scrollbars from simple animations */
+  }
+  
+  .landing-header {
+    margin-bottom: 40px;
+    animation: fadeInDown 1s ease-out; /* Simple fade in */
+  }
+  
+  .landing-header h1 {
+    font-size: 3em;
+    color: #00ffff; /* Use a theme color */
+    margin-bottom: 10px;
+  }
+  
+  .tagline {
+    font-size: 1.2em;
+    color: #aaa;
+  }
+  
+  .description-section {
+    max-width: 600px;
+    margin-bottom: 40px;
+    animation: fadeInUp 1s ease-out 0.5s; /* Delayed fade up */
+    animation-fill-mode: backwards; /* Start invisible before animation */
+  }
+  
+  .description-section p {
+    font-size: 1.1em;
+    line-height: 1.6;
+    color: #ccc;
+  }
+  
+  /* Simple Animation Placeholder */
+  .animation-placeholder {
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    color: #00ffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .pulsing-node {
+    width: 20px;
+    height: 20px;
+    background-color: #ff00ff; /* Magenta color for contrast */
+    border-radius: 50%;
+    animation: pulse 2s infinite ease-in-out;
+  }
+  
+  .config-section {
+    background-color: #222;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.1); /* Subtle glow */
+    animation: zoomIn 0.8s ease-out 1s;
+    animation-fill-mode: backwards;
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .config-section h2 {
+    color: #00ffff;
+    margin-bottom: 20px;
+  }
+  
+  .config-item {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column; /* Stack label and input */
+    align-items: center; /* Center items */
+  }
+  
+  .config-item label {
+    margin-bottom: 8px;
+    color: #aaa;
+  }
+  
+  .config-item input[type="number"],
+  .config-item input[type="range"] {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #00ffff55;
+    background-color: #1a1a1a;
+    color: #eee;
+    width: 80%; /* Adjust width as needed */
+  }
+  
+  .config-item input[type="range"] {
+    cursor: pointer;
+    accent-color: #00ffff; /* Style the slider track/thumb */
+  }
+  
+  .config-item span {
+    margin-left: 10px; /* Space between slider and value display */
+    color: #ccc;
+    font-weight: bold;
+  }
+  
+  .start-button {
+    padding: 15px 30px;
+    font-size: 1.2em;
+    background-color: #00ffff;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    animation: pulseButton 2s infinite 1.5s; /* Delayed pulsing */
+  }
+  
+  .start-button:hover {
+    background-color: #00cccc;
+    transform: scale(1.05);
+  }
+  
+  /* Basic Animations */
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes zoomIn {
+     from { opacity: 0; transform: scale(0.9); }
+     to { opacity: 1; transform: scale(1); }
+  }
+  
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+  }
+  
+  @keyframes pulseButton {
+    0% { box-shadow: 0 0 5px rgba(0, 255, 255, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.6); }
+    100% { box-shadow: 0 0 5px rgba(0, 255, 255, 0.3); }
+  }
