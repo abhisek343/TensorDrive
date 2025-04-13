@@ -3,72 +3,61 @@ import * as tf from '@tensorflow/tfjs';
 
 // Define the structure for training data points
 interface TrainingData {
-    input: number[];  // Input features (e.g., sensor readings + risk score)
-    output: number[]; // Corresponding desired output controls (e.g., [1, 0, 0, 0] for forward)
+    input: number[];
+    output: number[];
 }
 
 // Define training parameters (adjust these based on experimentation)
-const LEARNING_RATE = 0.001;
-const EPOCHS = 5; // Number of training iterations over the buffer data
+const LEARNING_RATE = 0.010;
+const EPOCHS = 40;
 const BATCH_SIZE = 32;
-const INPUT_NODES = 6; // Must match the size of the input array in TrainingData (e.g., 5 sensors + 1 risk)
-const HIDDEN_NODES = 8; // Example: Number of neurons in the hidden layer (tune this)
-const OUTPUT_NODES = 4; // Must match the size of the output array (forward, left, right, reverse)
-const MIN_BUFFER_FOR_TRAINING = 100; // Minimum samples needed before training starts
-const TARGET_LOSS = 0.1; // Example target loss threshold to consider the model "ready"
+const INPUT_NODES = 6;
+const HIDDEN_NODES = 16;
+const OUTPUT_NODES = 4;
+const MIN_BUFFER_FOR_TRAINING = 100;
+const TARGET_LOSS = 0.2;
 
-let currentModel: tf.Sequential | null = null; // Keep model instance between training calls
-let isTraining = false; // Prevent concurrent training loops
+// REMOVE the global model variable:
+// let currentModel: tf.Sequential | null = null; // <<< REMOVE THIS LINE
 
-/**
- * Defines the TensorFlow.js model architecture.
- * Should be similar in structure/complexity to the FNN it's learning from.
- * @returns A tf.Sequential model instance.
- */
+let isTraining = false;
+
+// createTfModel function remains the same...
 function createTfModel(): tf.Sequential {
     const model = tf.sequential();
-
-    // Input layer (shape excluding batch size)
     model.add(tf.layers.dense({
         inputShape: [INPUT_NODES],
         units: HIDDEN_NODES,
-        activation: 'relu' // Rectified Linear Unit activation for hidden layer
+        activation: 'relu'
     }));
-
-    // Optional: Add more hidden layers if needed
-    // model.add(tf.layers.dense({ units: ANOTHER_HIDDEN_SIZE, activation: 'relu' }));
-
-    // Output layer (4 units for controls, sigmoid for independent probabilities 0-1)
     model.add(tf.layers.dense({
         units: OUTPUT_NODES,
-        activation: 'sigmoid' // Sigmoid gives output between 0 and 1 for each control
+        activation: 'sigmoid'
     }));
-
-    // Compile the model with optimizer and loss function
     model.compile({
         optimizer: tf.train.adam(LEARNING_RATE),
-        // Use binaryCrossentropy for independent sigmoid outputs, or meanSquaredError if preferred
-        loss: 'binaryCrossentropy', // Suitable for multi-label classification (each control is independent)
-        // loss: 'meanSquaredError', // Alternative if treating outputs as regression targets
-        // metrics: ['accuracy'], // Optional: track accuracy during training
+        loss: 'binaryCrossentropy',
     });
-
     console.log("TF.js training model created:");
-    model.summary(); // Log model structure
+    model.summary();
     return model;
 }
 
+
 /**
  * Trains the TensorFlow.js model asynchronously using data from the buffer.
+ * Builds upon an existing model if provided.
  *
  * @param trainingBuffer Array of collected TrainingData samples.
+ * @param existingModel The current model instance from TfBrain (or null if none exists).
  * @param onTrainingComplete Callback function executed when training finishes.
  * Receives the trained model and a boolean indicating if target loss was met.
- * `(model: tf.Sequential | null, reachedTargetLoss: boolean) => void`
+ * `(model: tf.LayersModel | null, reachedTargetLoss: boolean) => void` // tf.LayersModel is compatible
  */
 export const startTraining = async (
     trainingBuffer: TrainingData[],
-    onTrainingComplete: (model: tf.Sequential | null, reachedTargetLoss: boolean) => void
+    existingModel: tf.LayersModel | null, // <<< ADD parameter for existing model
+    onTrainingComplete: (model: tf.LayersModel | null, reachedTargetLoss: boolean) => void
 ): Promise<void> => {
 
     if (isTraining) {
@@ -77,43 +66,61 @@ export const startTraining = async (
     }
     if (trainingBuffer.length < MIN_BUFFER_FOR_TRAINING) {
         console.log(`Training buffer size (${trainingBuffer.length}) is less than minimum (${MIN_BUFFER_FOR_TRAINING}). Waiting for more data.`);
+        // Optionally call onTrainingComplete(existingModel, false) if you want to signify no training occurred
         return;
     }
 
     isTraining = true;
     console.log(`Starting TF.js training with ${trainingBuffer.length} samples...`);
 
+    let modelToTrain: tf.LayersModel | null = null; // Use tf.LayersModel type
+
     try {
-        // Ensure model exists, create if not
-        if (!currentModel) {
-            currentModel = createTfModel();
+        // Use the existing model if provided and valid, otherwise create a new one
+        modelToTrain = existingModel;
+        if (!modelToTrain) {
+            console.log("No existing model provided, creating a new one.");
+            modelToTrain = createTfModel(); // createTfModel returns tf.Sequential, which is compatible
+        } else {
+            // IMPORTANT: Double-check the existing model isn't disposed *before* training
+            // This check might be overly cautious if TfBrain manages disposal well, but safer
+            try {
+                 // Attempt a simple operation to see if layers are disposed
+                 if (modelToTrain.layers.length > 0) {
+                     // Example: try getting weights (might throw if disposed)
+                     modelToTrain.layers[0].getWeights();
+                 }
+                 console.log("Continuing training with existing model.");
+            } catch (e: any) {
+                 if (e.message.includes('disposed')) {
+                    console.warn("Existing model appears disposed. Creating a new one instead.");
+                    modelToTrain = createTfModel();
+                 } else {
+                     throw e; // Re-throw unexpected errors
+                 }
+            }
         }
 
-        // 1. Prepare Data: Convert buffer to Tensors
-        const { xs, ys } = tf.tidy(() => { // Use tidy to auto-dispose intermediate tensors
-            // Shuffle data for better training
-            tf.util.shuffle(trainingBuffer);
-
-            const inputs = trainingBuffer.map(d => d.input);
-            const outputs = trainingBuffer.map(d => d.output);
-
-            // Convert arrays to 2D tensors [numSamples, numFeatures]
-            const inputTensor = tf.tensor2d(inputs, [inputs.length, INPUT_NODES]);
-            const outputTensor = tf.tensor2d(outputs, [outputs.length, OUTPUT_NODES]);
-
-            return { xs: inputTensor, ys: outputTensor };
+        // 1. Prepare Data (remains the same)
+        const { xs, ys } = tf.tidy(() => {
+             tf.util.shuffle(trainingBuffer);
+             const inputs = trainingBuffer.map(d => d.input);
+             const outputs = trainingBuffer.map(d => d.output);
+             const inputTensor = tf.tensor2d(inputs, [inputs.length, INPUT_NODES]);
+             const outputTensor = tf.tensor2d(outputs, [outputs.length, OUTPUT_NODES]);
+             return { xs: inputTensor, ys: outputTensor };
         });
 
-        // 2. Train the Model
-        const history = await currentModel.fit(xs, ys, {
+        // 2. Train the Model (use modelToTrain)
+        const history = await modelToTrain.fit(xs, ys, {
             epochs: EPOCHS,
             batchSize: BATCH_SIZE,
-            shuffle: true, // Shuffle data within epochs as well
-            validationSplit: 0.1, // Optional: use 10% of data for validation during training
-            callbacks: { // Optional: log progress
+            shuffle: true,
+            validationSplit: 0.1,
+            callbacks: {
                 onEpochEnd: (epoch, logs) => {
                     if (logs) {
-                       console.log(`Epoch ${epoch + 1}/${EPOCHS} - loss: ${logs.loss.toFixed(4)}, val_loss: ${logs.val_loss?.toFixed(4)}`);
+                        console.log(`Epoch ${epoch + 1}/${EPOCHS} - loss: ${logs.loss.toFixed(4)}, val_loss: ${logs.val_loss?.toFixed(4)}`);
                     }
                 }
             }
@@ -122,47 +129,21 @@ export const startTraining = async (
         // Dispose tensors after training
         tf.dispose([xs, ys]);
 
-        // 3. Check if target loss was met
+        // 3. Check if target loss was met (remains the same)
         const finalLoss = history.history.loss[history.history.loss.length - 1] as number;
         const reachedTarget = finalLoss <= TARGET_LOSS;
         console.log(`Training complete. Final loss: ${finalLoss.toFixed(4)}. Reached target loss (${TARGET_LOSS}): ${reachedTarget}`);
 
-        // 4. Call the callback function
-        onTrainingComplete(currentModel, reachedTarget);
+        // 4. Call the callback function with the trained model
+        onTrainingComplete(modelToTrain, reachedTarget); // Pass back the model that was actually trained
 
     } catch (error) {
         console.error("Error during TF.js training:", error);
+        // If an error occurred, pass back null or the original model depending on desired behavior
         onTrainingComplete(null, false); // Indicate failure
     } finally {
-        isTraining = false; // Allow next training cycle
+        isTraining = false;
     }
 };
 
-/**
- * Optional: Function to potentially save the trained model (e.g., to IndexedDB)
- */
-export const saveTrainedModel = async (model: tf.Sequential, modelName: string = 'user-tf-model'): Promise<void> => {
-     if (!model) return;
-     try {
-         const saveResult = await model.save(`indexeddb://${modelName}`);
-         console.log(`TF.js model saved to IndexedDB as '${modelName}'. Result:`, saveResult);
-     } catch (error) {
-         console.error(`Failed to save model to IndexedDB '${modelName}':`, error);
-     }
-};
-
-/**
- * Optional: Function to load a previously saved model (e.g., from IndexedDB)
- */
-export const loadTrainedModel = async (modelName: string = 'user-tf-model'): Promise<tf.Sequential | null> => {
-    try {
-        console.log(`Attempting to load TF.js model from IndexedDB: '${modelName}'`);
-        const model = await tf.loadLayersModel(`indexeddb://${modelName}`) as tf.Sequential;
-        console.log(`TF.js model '${modelName}' loaded successfully from IndexedDB.`);
-        currentModel = model; // Update current model instance
-        return model;
-    } catch (error) {
-        console.log(`Model '${modelName}' not found in IndexedDB or failed to load:`, error);
-        return null;
-    }
-};
+// ... (saveTrainedModel, loadTrainedModel if kept)

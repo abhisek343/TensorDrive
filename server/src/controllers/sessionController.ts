@@ -18,16 +18,23 @@ export const saveSession = async (req: Request, res: Response): Promise<void> =>
 
         const { score, path, model_used } = req.body;
 
+        // Validate input types first
         if (typeof score !== 'number' || !path || typeof model_used !== 'string') {
             res.status(400).json({ message: 'Invalid session data. Required fields: score (number), path (json), model_used (string).' });
             return;
         }
+
+        // --- FIX START ---
+        // Round the score to the nearest integer before database insertion
+        const roundedScore = Math.round(score);
+        // --- FIX END ---
+
         const pathJsonb = typeof path === 'string' ? path : JSON.stringify(path);
 
-        // Include user_id in the INSERT statement
+        // Include user_id and use roundedScore in the INSERT statement
         const newSession = await pool.query(
             'INSERT INTO sessions (score, path, model_used, user_id) VALUES ($1, $2, $3, $4) RETURNING *',
-            [score, pathJsonb, model_used, userId] // Add userId as the 4th parameter
+            [roundedScore, pathJsonb, model_used, userId] // Use roundedScore here
         );
 
         console.log('Session saved successfully:', newSession.rows[0]);
@@ -35,6 +42,11 @@ export const saveSession = async (req: Request, res: Response): Promise<void> =>
 
     } catch (error) {
         console.error('Error saving session:', error);
+        // Check if the error is a database error and potentially provide more specific info
+        if (error instanceof Error && 'code' in error) {
+             console.error(`Database error code: ${error.code}`);
+             // You could potentially check for specific DB error codes here
+        }
         res.status(500).json({ message: 'Failed to save session data.' });
     }
 };

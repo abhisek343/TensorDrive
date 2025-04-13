@@ -1,6 +1,5 @@
 // client/src/simulation/TfBrain.ts
 import * as tf from '@tensorflow/tfjs';
-// Removed: import { Point } from './helpers'; (Marked as unused previously)
 
 export interface BrainInput {
     sensorReadings: (number | null)[]; // Use offset (0-1) or null
@@ -13,6 +12,9 @@ export interface BrainOutput {
     right: boolean;
     reverse: boolean;
 }
+
+// Define expected input size based on your constants (e.g., from trainTfModel.ts)
+const EXPECTED_INPUT_NODES = 6; // Or import this constant
 
 export class TfBrain {
     private model: tf.LayersModel | null = null; // Can be LayersModel or Sequential
@@ -32,12 +34,15 @@ export class TfBrain {
             this.dispose();
             const loadedModel = await tf.loadLayersModel(url);
             this.model = loadedModel; // Assign the loaded model
-            this.inputShape = [1, inputShape.reduce((a, b) => a + b, 0)]; // Store as [1, totalFeatures]
+            // Ensure inputShape passed is valid before reducing
+             const totalFeatures = Array.isArray(inputShape) ? inputShape.reduce((a, b) => a + (b || 0), 0) : EXPECTED_INPUT_NODES; // Use constant as fallback
+            this.inputShape = [1, totalFeatures];
             this.outputNodes = outputNodes;
-            console.log(`TensorFlow.js model loaded successfully from ${url}`);
+            console.log(`TensorFlow.js model loaded successfully from ${url}. Expected input features: ${totalFeatures}`);
         } catch (error) {
             console.error(`Failed to load TensorFlow.js model from ${url}:`, error);
             this.model = null;
+            this.inputShape = null; // Reset shape on failure
         }
     }
 
@@ -56,9 +61,11 @@ export class TfBrain {
         // Dispose previous model if any
         this.dispose();
         this.model = trainedModel as tf.LayersModel; // Cast to LayersModel for consistency if needed
-        this.inputShape = [1, inputShape.reduce((a, b) => a + b, 0)]; // Store as [1, totalFeatures]
+         // Ensure inputShape passed is valid before reducing
+         const totalFeatures = Array.isArray(inputShape) ? inputShape.reduce((a, b) => a + (b || 0), 0) : EXPECTED_INPUT_NODES; // Use constant as fallback
+        this.inputShape = [1, totalFeatures]; // Store as [1, totalFeatures]
         this.outputNodes = outputNodes;
-        console.log("Trained TensorFlow.js model set directly in TfBrain.");
+        console.log(`Trained TensorFlow.js model set directly in TfBrain. Expected input features: ${totalFeatures}`);
     }
 
 
@@ -69,21 +76,33 @@ export class TfBrain {
      */
     predict(inputs: BrainInput): BrainOutput | null {
         if (!this.model || !this.inputShape) {
-            // console.warn('TF Prediction attempted before model was loaded/set.');
+            console.warn('TF Prediction attempted before model was loaded/set or inputShape is missing.');
             return null; // Or return default controls
         }
 
+        // --- LOGGING START ---
+        console.log(`[Debug TfBrain Predict] Received inputs: sensorReadings length=${inputs?.sensorReadings?.length}, riskScore=${inputs?.riskScore}`);
+        // --- LOGGING END ---
+
         const processedInputs: number[] = this.preprocessInputs(inputs);
 
+        // --- LOGGING START ---
+        console.log(`[Debug TfBrain Predict] Processed inputs length=${processedInputs.length}, Expected shape=${JSON.stringify(this.inputShape)} (expecting ${this.inputShape ? this.inputShape[1] : 'N/A'} features)`);
+        // --- LOGGING END ---
+
+
         // Double check input length matches expected feature count
-        if (processedInputs.length !== this.inputShape[1]) {
-             console.error(`TF Predict Error: Input data length (${processedInputs.length}) does not match model's expected input size (${this.inputShape[1]})`);
-             return null;
+        // Use a guard against null this.inputShape just in case
+        const expectedFeatures = this.inputShape ? this.inputShape[1] : EXPECTED_INPUT_NODES;
+        if (processedInputs.length !== expectedFeatures) {
+             console.error(`TF Predict Error: Input data length (${processedInputs.length}) does not match model's expected input size (${expectedFeatures})`);
+             // Return default controls to potentially prevent downstream errors, or null
+             return { forward: false, left: false, right: false, reverse: false };
         }
 
         const outputTensor = tf.tidy(() => {
             // Ensure input tensor shape matches [1, numFeatures]
-            const inputTensor = tf.tensor2d([processedInputs], [1, this.inputShape![1]]);
+            const inputTensor = tf.tensor2d([processedInputs], [1, expectedFeatures]);
             return this.model!.predict(inputTensor) as tf.Tensor;
         });
 
@@ -101,18 +120,34 @@ export class TfBrain {
      * @returns A flat array of numbers.
      */
     private preprocessInputs(inputs: BrainInput): number[] {
-        // Map sensor readings: null -> 0, intersection -> 1 - offset
-        const sensorValues = inputs.sensorReadings.map(readingOffset =>
-            readingOffset === null ? 0 : 1 - readingOffset
-        );
+         // --- LOGGING START ---
+         console.log(`[Debug TfBrain Preprocess] Preprocessing inputs: sensorReadings length=${inputs?.sensorReadings?.length}, riskScore=${inputs?.riskScore}`);
+         // --- LOGGING END ---
 
-        // Combine sensor values with other inputs (ensure order matches training)
-        const combinedInputs = [
-            ...sensorValues,
-            inputs.riskScore !== undefined ? inputs.riskScore : 0, // Add risk score, default to 0
-        ];
+         // --- DEFENSIVE CHECK START ---
+         // Ensure sensorReadings is an array before mapping
+         const sensorReadingsArray = Array.isArray(inputs?.sensorReadings) ? inputs.sensorReadings : [];
+         const expectedSensorLength = (this.inputShape ? this.inputShape[1] : EXPECTED_INPUT_NODES) - 1; // Expecting INPUT_NODES - 1 sensor values
 
-        return combinedInputs;
+         if (sensorReadingsArray.length !== expectedSensorLength) {
+             console.warn(`[Debug TfBrain Preprocess] Sensor readings length (${sensorReadingsArray.length}) !== expected (${expectedSensorLength}). Returning default zero array.`);
+             // Return a default array of the *total expected length* to avoid crashing prediction
+             return Array(expectedSensorLength + 1).fill(0);
+         }
+         // --- DEFENSIVE CHECK END ---
+
+         // Map sensor readings: null -> 0, intersection -> 1 - offset
+         const sensorValues = sensorReadingsArray.map(readingOffset =>
+             readingOffset === null ? 0 : 1 - readingOffset
+         );
+
+         // Combine sensor values with other inputs (ensure order matches training)
+         const combinedInputs = [
+             ...sensorValues,
+             inputs.riskScore !== undefined ? inputs.riskScore : 0, // Add risk score, default to 0
+         ];
+
+         return combinedInputs;
     }
 
     /**
@@ -143,6 +178,7 @@ export class TfBrain {
         if (this.model) {
             this.model.dispose();
             this.model = null;
+            this.inputShape = null; // Also clear shape info on dispose
             console.log('TensorFlow.js model disposed.');
         }
     }
@@ -152,7 +188,8 @@ export class TfBrain {
      * @returns True if a model is loaded, false otherwise.
      */
     isModelLoaded(): boolean {
-        return this.model !== null;
+        // Check both model existence and if inputShape has been set
+        return this.model !== null && this.inputShape !== null;
     }
 
     /**
