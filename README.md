@@ -131,27 +131,6 @@ You'll need two separate terminals.
     * Once a model meets the `TARGET_LOSS`, control should automatically switch to TF.js for the lead car.
     * Use the controls to save sessions or load previously uploaded models.
 
-## Known Issues & Future Work
-
-* **Frontend Authentication**: Requires implementing a server-side token verification check on application load for enhanced security.
-* **Model Metadata Parsing**: The backend logic in `modelController.ts` for extracting shapes/nodes from `model.json` might need adjustments based on the exact TF.js save format encountered.
-* **Backend Stability**: Investigate potential backend crashes related to the model upload process if the `nodemon.json` fix doesn't fully resolve the `ERR_CONNECTION_REFUSED` issue.
-* **Path Data**: Implement actual path recording/storage for simulation sessions.
-* **UI/UX**: Enhance user feedback for asynchronous operations and errors.
-* **FNN Evolution**: Flesh out the genetic algorithm aspects for FNN improvement.
-* **Performance**: Further optimize simulation and rendering, especially for larger numbers of cars.
-
-## License
-## 🐞 Known Issues & Future Work
-
-- **Frontend Authentication**: Requires implementing a server-side token verification check on application load for enhanced security.
-- **Model Metadata Parsing**: The backend logic in `modelController.ts` for extracting shapes/nodes from `model.json` might need adjustments based on the exact TF.js save format encountered.
-- **Backend Stability**: Investigate potential backend crashes related to the model upload process if the `nodemon.json` fix doesn't fully resolve the `ERR_CONNECTION_REFUSED` issue.
-- **Path Data Recording**: Implement full trajectory/path storage for car sessions (currently placeholder).
-- **UI/UX Improvements**: Add loading indicators, error modals, and responsive visual feedback for long async operations.
-- **FNN Evolution Strategy**: Expand the genetic algorithm aspects to improve FNN control dynamically.
-- **Performance Optimization**: Further tune animation and AI logic to simulate larger fleets (100+ AI agents) without canvas lag.
-
 ---
 
 ## 📝 License
