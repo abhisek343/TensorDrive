@@ -9,6 +9,9 @@ This project presents a full-stack web application simulating self-driving cars 
 
 The platform supports user authentication, persistent storage of simulation results and training data, and basic model management features.
 
+
+![TensorDrive Screenshot]!image1.png
+
 ## Core Pipeline: FNN -> TF.js Training -> Handoff
 
 1.  **FNN Control**: AI cars start with a standard FNN, potentially evolved using basic genetic algorithm principles (persisted via `localStorage`).
