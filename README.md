@@ -9,6 +9,8 @@ This project presents a full-stack web application simulating self-driving cars 
 
 The platform supports user authentication, persistent storage of simulation results and training data, and basic model management features.
 ![TensorDrive Screenshot](client/public/image1.png)
+
+
 ## Core Pipeline: FNN -> TF.js Training -> Handoff
 
 1.  **FNN Control**: AI cars start with a standard FNN, potentially evolved using basic genetic algorithm principles (persisted via `localStorage`).
@@ -131,51 +133,9 @@ You'll need two separate terminals.
     * Once a model meets the `TARGET_LOSS`, control should automatically switch to TF.js for the lead car.
     * Use the controls to save sessions or load previously uploaded models.
 
-## Known Issues & Future Work
-
-* **Frontend Authentication**: Requires implementing a server-side token verification check on application load for enhanced security.
-* **Model Metadata Parsing**: The backend logic in `modelController.ts` for extracting shapes/nodes from `model.json` might need adjustments based on the exact TF.js save format encountered.
-* **Backend Stability**: Investigate potential backend crashes related to the model upload process if the `nodemon.json` fix doesn't fully resolve the `ERR_CONNECTION_REFUSED` issue.
-* **Path Data**: Implement actual path recording/storage for simulation sessions.
-* **UI/UX**: Enhance user feedback for asynchronous operations and errors.
-* **FNN Evolution**: Flesh out the genetic algorithm aspects for FNN improvement.
-* **Performance**: Further optimize simulation and rendering, especially for larger numbers of cars.
-
-## License
-## 🐞 Known Issues & Future Work
-
-- **Frontend Authentication**: Requires implementing a server-side token verification check on application load for enhanced security.
-- **Model Metadata Parsing**: The backend logic in `modelController.ts` for extracting shapes/nodes from `model.json` might need adjustments based on the exact TF.js save format encountered.
-- **Backend Stability**: Investigate potential backend crashes related to the model upload process if the `nodemon.json` fix doesn't fully resolve the `ERR_CONNECTION_REFUSED` issue.
-- **Path Data Recording**: Implement full trajectory/path storage for car sessions (currently placeholder).
-- **UI/UX Improvements**: Add loading indicators, error modals, and responsive visual feedback for long async operations.
-- **FNN Evolution Strategy**: Expand the genetic algorithm aspects to improve FNN control dynamically.
-- **Performance Optimization**: Further tune animation and AI logic to simulate larger fleets (100+ AI agents) without canvas lag.
-
 ---
 
 ## 📝 License
 
 **MIT License**  
 © 2025 Abhisek Behera
-
-Permission is hereby granted, free of charge, to any person obtaining a copy  
-of this software and associated documentation files (the "Software"), to deal  
-in the Software without restriction, including without limitation the rights  
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell  
-copies of the Software, and to permit persons to whom the Software is  
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in  
-all copies or substantial portions of the Software.
-
----
-
-**THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.** IN NO EVENT SHALL THE  
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER  
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE  
-SOFTWARE.
-
