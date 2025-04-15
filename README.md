@@ -8,7 +8,7 @@ This project presents a full-stack web application simulating self-driving cars 
 4.  Upon reaching a defined performance threshold (based on training loss), the system automatically performs a "brain handoff," switching vehicle control to the newly trained, more capable TF.js model.
 
 The platform supports user authentication, persistent storage of simulation results and training data, and basic model management features.
-
+![TensorDrive Screenshot](client/public/image1.png)
 ## Core Pipeline: FNN -> TF.js Training -> Handoff
 
 1.  **FNN Control**: AI cars start with a standard FNN, potentially evolved using basic genetic algorithm principles (persisted via `localStorage`).
