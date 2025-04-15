@@ -59,7 +59,7 @@ The platform supports user authentication, persistent storage of simulation resu
 
 1.  **Clone Repository:**
     ```bash
-    git clone <your-repository-url>
+    git clone https://github.com/abhisek343/TensorDrive.git
     cd <your-repository-name>
     ```
 
