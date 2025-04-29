@@ -1,5 +1,5 @@
 # TensorDrive
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) ## Overview
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
 
 This project presents a full-stack web application simulating self-driving cars within a 2D environment. Its core innovation lies in an end-to-end machine learning pipeline operating directly within the browser:
 1.  AI agents are initially controlled by a basic Feedforward Neural Network (FNN).
