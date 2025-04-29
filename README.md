@@ -1,141 +1,188 @@
-# TensorDrive
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
+TensorDrive 🚗
 
-This project presents a full-stack web application simulating self-driving cars within a 2D environment. Its core innovation lies in an end-to-end machine learning pipeline operating directly within the browser:
-1.  AI agents are initially controlled by a basic Feedforward Neural Network (FNN).
-2.  Driving data (sensor inputs, risk assessment, control outputs) from the best-performing FNN agent is continuously captured.
-3.  A TensorFlow.js (TF.js) model is asynchronously trained in the browser background using this captured data.
-4.  Upon reaching a defined performance threshold (based on training loss), the system automatically performs a "brain handoff," switching vehicle control to the newly trained, more capable TF.js model.
+What is TensorDrive?
+TensorDrive is a fun and educational web app that simulates self-driving cars in a 2D world, right in your browser! It uses artificial intelligence (AI) to control cars, starting with a simple neural network and upgrading to a more advanced model trained with TensorFlow.js. Whether you're a beginner or an experienced developer, you can explore, contribute, and learn about AI, web development, and simulations.
 
-The platform supports user authentication, persistent storage of simulation results and training data, and basic model management features.
-![TensorDrive Screenshot](client/public/image1.png)
+Table of Contents
+
+What is TensorDrive?
+How It Works
+Key Features
+Tech Stack
+Getting Started
+Running the App
+Contributing
+Troubleshooting
+Roadmap
+License
+
+How It Works
+TensorDrive trains AI to drive cars in a 2D environment using these steps:
+
+Start Simple: Cars are controlled by a basic Feedforward Neural Network (FNN), like a beginner driver.
+Collect Data: The best-performing car shares its "driving experience" (sensor data and actions).
+Train in Browser: TensorFlow.js uses this data to train a smarter AI model while you watch.
+Upgrade Control: When the new model is good enough, it takes over, making the car drive better!
+
+This all happens in your browser, with data saved to a database so you can pick up where you left off.
+Key Features
+
+🚗 2D Driving Simulation: Watch cars navigate using HTML Canvas, with realistic physics and sensors.
+🧠 AI Brain Switch: Seamlessly upgrades from a simple FNN to a trained TensorFlow.js model.
+🌐 Browser-Based AI: Train and run AI models without needing a powerful server.
+🔒 User Accounts: Sign up, log in, and save your progress securely.
+💾 Save Models: Store and load your trained AI models to keep improving.
+
+Tech Stack
+
+Frontend: React (web interface), TypeScript (safe coding), TensorFlow.js (AI), React Router (navigation)
+Backend: Node.js, Express (API), TypeScript, PostgreSQL (database), JWT (secure login), Bcrypt (password safety)
+Tools: npm (package manager), nodemon (auto-restart server), ts-node (run TypeScript)
+
+Getting Started
+Follow these steps to set up TensorDrive on your computer. Don’t worry if you’re new—we’ll guide you!
+Prerequisites
+
+Node.js: Download and install from nodejs.org (v14 or later).
+PostgreSQL: Install a free database from postgresql.org or use a tool like pgAdmin.
+Git: Install from git-scm.com to clone the project.
+Code Editor: Try VS Code (free and beginner-friendly).
+
+Setup Checklist
+
+Clone the Project:
+git clone https://github.com/abhisek343/TensorDrive.git
+cd TensorDrive
 
 
-## Core Pipeline: FNN -> TF.js Training -> Handoff
+Set Up the Backend:
+cd server
+npm install
 
-1.  **FNN Control**: AI cars start with a standard FNN, potentially evolved using basic genetic algorithm principles (persisted via `localStorage`).
-2.  **Data Capture**: Sensor readings, risk scores, and FNN control actions from the current "best" car are collected.
-3.  **Buffering**: Captured data points (`{input, output}`) are stored in a frontend buffer.
-4.  **Backend Sync**: Data batches are periodically sent to the backend for persistent storage, associated with the logged-in user.
-5.  **TF.js Training**: When the buffer reaches a threshold, the collected data is used to train a TF.js model (`tf.Sequential`) using `model.fit()` within the browser. Training occurs incrementally on the existing TF.js model instance.
-6.  **Evaluation**: After training, the model's loss is checked against a target threshold (`TARGET_LOSS`).
-7.  **Model Update & Handoff**: If the target loss is met:
-    * The `TfBrain` component is updated with the newly trained model weights.
-    * The system flags the TF model as ready (`tfModelReady = true`).
-    * If in AI mode, control automatically switches (`isTFActive = true`), and subsequent control signals come from `TfBrain.predict()` instead of the FNN.
-    * The successfully trained model is automatically uploaded to the backend.
 
-## Key Features
+Copy the example environment file:cp .env.example .env
 
-* **Real-time 2D Simulation**: Dynamic environment using HTML Canvas API, simulating car physics, sensors (raycasting), collision detection, and traffic patterns.
-* **Dual Brain System**: Seamlessly manages control between a basic FNN and a trainable TF.js model.
-* **In-Browser Machine Learning**: Leverages TensorFlow.js for client-side model training and inference, enabling user-specific model refinement without server-side GPU dependencies for training.
-* **Automated Control Handoff**: Dynamically switches AI control based on TF.js model training performance.
-* **Full-Stack Architecture**: Robust separation of concerns between the React frontend and the Node.js/Express backend API.
-* **User Authentication**: Secure registration and login using bcrypt password hashing and JWT for session management.
-* **Persistent User Data**: Stores user accounts, simulation session summaries (score, model used), and captured training data in a PostgreSQL database.
-* **Model Persistence & Loading**: Automatically uploads trained TF.js models; allows users to browse and load previously saved models.
 
-## Tech Stack
+Open .env in a text editor and add:
+PostgreSQL details (e.g., DB_USER=your_username, DB_PASSWORD=your_password, DB_NAME=tensordrive).
+A secret key for JWT_SECRET (e.g., JWT_SECRET=your_unique_secret_123).
 
-* **Frontend**: React 19, TypeScript, TensorFlow.js, React Router 7, CSS
-* **Backend**: Node.js, Express 5, TypeScript, PostgreSQL (`pg` driver), JWT (`jsonwebtoken`), Bcrypt, Multer
-* **Database**: PostgreSQL
-* **Development**: `nodemon`, `ts-node`, `concurrently` (optional)
 
-## Architecture
 
-* **Client-Server**: Standard web architecture with a React SPA consuming a RESTful API provided by the Node.js/Express backend.
-* **Static Files**: Backend serves trained model files (`.json`, `.bin`) statically from the `server/public/models/` directory.
-* **API Routes**: Backend exposes endpoints under `/api/` for authentication, session management, model listing/upload, and training data submission.
 
-## Prerequisites
+Set Up the Database:
 
-* Node.js (v14.x or later recommended)
-* npm (v6 or later) or yarn (v1 or later)
-* PostgreSQL Server (running locally or accessible)
+Start PostgreSQL on your computer.
+Create a database named tensordrive:psql -U your_username -c "CREATE DATABASE tensordrive;"
 
-## Setup & Installation
 
-1.  **Clone Repository:**
-    ```bash
-    git clone https://github.com/abhisek343/TensorDrive.git
-    cd <your-repository-name>
-    ```
+Run the schema.sql file to create tables (you’ll need to create this file based on the example below):-- server/schema.sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-2.  **Backend Setup:**
-    ```bash
-    cd server
-    npm install
+CREATE TABLE models (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    model_name VARCHAR(100) NOT NULL,
+    file_path VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-    # Create .env file
-    cp .env.example .env # Or create manually
+CREATE TABLE sessions (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    score INTEGER NOT NULL,
+    model_id INTEGER REFERENCES models(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-    # --> EDIT .env file <--
-    # Fill in your PostgreSQL connection details (DB_USER, DB_PASSWORD, DB_NAME, etc.)
-    # Set a strong, unique JWT_SECRET
-    ```
+CREATE TABLE training_data (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    input_data JSONB NOT NULL,
+    output_data JSONB NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-3.  **Database Setup:**
-    * Ensure your PostgreSQL server is running.
-    * Connect using `psql` or a GUI tool (like DBeaver, pgAdmin).
-    * Create the database specified in your `.env` file (e.g., `CREATE DATABASE carlogic;`).
-    * Connect to the newly created database.
-    * Execute the SQL commands from a `schema.sql` file ( **Note:** You need to create this file based on your table structure) to create the `users`, `models`, `sessions`, and `training_data` tables with the correct columns, types, constraints, and foreign keys. (See example SQL in the previous README draft or ensure your schema file is present).
 
-4.  **Nodemon Configuration (Recommended):**
-    * Create a `nodemon.json` file in the `server/` directory (if it doesn't exist).
-    * Add the following content to prevent restarts when models are uploaded:
-        ```json
-        *// server/nodemon.json
-        {
-          "watch": ["src"],
-          "ext": "ts,json",
-          "ignore": [
-            "src/**/*.spec.ts",
-            "node_modules",
-            "build",
-            "public/models/*"
-          ],
-          "exec": "ts-node ./src/server.ts"
-        }
-        ```
+Save this as server/schema.sql and run:psql -U your_username -d tensordrive -f server/schema.sql
 
-5.  **Frontend Setup:**
-    ```bash
-    cd ../client
-    npm install
-    ```
 
-## Running the Application
 
-You'll need two separate terminals.
 
-1.  **Start Backend Server:**
-    ```bash
-    cd server
-    npm start # Assumes start script runs nodemon configured as above
-    ```
-    *(Wait for logs indicating the server is running and DB is connected, typically on port 5000)*
+Set Up the Frontend:
+cd ../client
+npm install
 
-2.  **Start Frontend Client:**
-    ```bash
-    cd ../client
-    npm start
-    ```
-    *(This should automatically open the application in your default browser, usually at `http://localhost:3000`)*
 
-3.  **Usage:**
-    * Register a new user or log in.
-    * Navigate to the simulation page.
-    * The simulation should start with FNN-controlled cars.
-    * Data will be captured, and TF.js training will occur periodically (check console logs).
-    * Once a model meets the `TARGET_LOSS`, control should automatically switch to TF.js for the lead car.
-    * Use the controls to save sessions or load previously uploaded models.
 
----
+Running the App
+You’ll need two terminal windows (open two VS Code terminals or command prompts).
 
-## 📝 License
+Start the Backend:
+cd server
+npm start
 
-**MIT License**  
-© 2025 Abhisek Behera
+
+Look for a message like Server running on port 5000 and Database connected.
+
+
+Start the Frontend:
+cd client
+npm start
+
+
+Your browser should open http://localhost:3000. If not, visit that URL.
+
+
+Try It Out:
+
+Sign up or log in.
+Start the simulation to see cars drive with AI.
+Check the browser console (right-click → Inspect → Console) for training updates.
+When the AI improves, it’ll switch to a smarter model automatically!
+
+
+
+Contributing
+We love contributions from everyone, especially beginners! Here’s how you can help:
+
+Report Bugs: Find something broken? Open an issue on GitHub.
+Suggest Features: Have an idea? Share it in an issue.
+Fix or Add Code:
+Fork the repository (click “Fork” on GitHub).
+Clone your fork: git clone https://github.com/your-username/TensorDrive.git.
+Create a branch: git checkout -b my-feature.
+Make changes and test them.
+Commit: git commit -m "Add my feature".
+Push: git push origin my-feature.
+Open a pull request on GitHub.
+
+
+Improve Docs: Fix typos or clarify this README.
+Beginner Tasks: Check issues labeled “good first issue” on GitHub.
+
+No contribution is too small! If you’re stuck, ask for help in an issue.
+Troubleshooting
+
+PostgreSQL Error: Ensure PostgreSQL is running and .env has correct DB_USER, DB_PASSWORD, and DB_NAME.
+npm install Fails: Run npm cache clean --force and try again.
+Simulation Slow: Use Chrome or Firefox, and ensure your computer has 8GB+ RAM.
+No Cars Moving: Check the browser console for errors and ensure the backend is running.
+
+Still stuck? Open an issue on GitHub, and we’ll help!
+Roadmap
+
+🚀 Add multiplayer mode for cars to compete.
+📱 Make the simulation work on phones.
+🧠 Support more advanced AI models (e.g., deeper neural networks).
+📊 Show training progress in the UI.
+
+Want to help with these? Check the Contributing section!
+License
+MIT License© 2024 Abhisek Behera
+
