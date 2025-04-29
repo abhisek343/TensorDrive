@@ -87,7 +87,7 @@ The platform supports user authentication, persistent storage of simulation resu
     * Create a `nodemon.json` file in the `server/` directory (if it doesn't exist).
     * Add the following content to prevent restarts when models are uploaded:
         ```json
-        // server/nodemon.json
+        *// server/nodemon.json
         {
           "watch": ["src"],
           "ext": "ts,json",
