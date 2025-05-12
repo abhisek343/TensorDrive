@@ -15,7 +15,7 @@ TensorDrive is a fun and educational web app that simulates self-driving cars in
 * [Running the App](#running-the-app)
 * [Contributing](#contributing)
 * [Troubleshooting](#troubleshooting)
-* [Roadmap](#roadmap)
+* [Vision](#vision)
 * [License](#license)
 
 ## How It Works
