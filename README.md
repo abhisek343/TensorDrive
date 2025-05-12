@@ -184,5 +184,5 @@ Want to help with these? Check the [Contributing](#contributing) section!
 
 ## License
 MIT License
-© 2024 Abhisek
+© 2025 Abhisek
 
