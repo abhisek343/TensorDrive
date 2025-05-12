@@ -173,7 +173,7 @@ No contribution is too small! If you’re stuck, ask for help in an issue.
 
 Still stuck? Open an issue on GitHub, and we’ll help!
 
-## Roadmap
+## Vision
 
 🚀 Add multiplayer mode for cars to compete.
 📱 Make the simulation work on phones.
