@@ -3,6 +3,8 @@
 ## What is TensorDrive?
 TensorDrive is a fun and educational web app that simulates self-driving cars in a 2D world, right in your browser! It uses artificial intelligence (AI) to control cars, starting with a simple neural network and upgrading to a more advanced model trained with TensorFlow.js. Whether you're a beginner or an experienced developer, you can explore, contribute, and learn about AI, web development, and simulations.
 
+![Self Driving Car Simulation](selfdriving.png)
+
 ## Table of Contents
 
 * [What is TensorDrive?](#what-is-tensordrive)
@@ -185,4 +187,3 @@ Want to help with these? Check the [Contributing](#contributing) section!
 ## License
 MIT License
 © 2025 Abhisek
-
